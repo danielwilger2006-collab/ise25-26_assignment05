@@ -65,12 +65,13 @@ public class CucumberPosSteps {
 
     /**
      * Register a Cucumber DataTable type for PosDto.
+     *
      * @param row the DataTable row to map to a PosDto object
      * @return the mapped PosDto object
      */
     @DataTableType
     @SuppressWarnings("unused")
-    public PosDto toPosDto(Map<String,String> row) {
+    public PosDto toPosDto(Map<String, String> row) {
         return PosDto.builder()
                 .name(row.get("name"))
                 .description(row.get("description"))
@@ -92,6 +93,10 @@ public class CucumberPosSteps {
     }
 
     // TODO: Add Given step for new scenario
+    @Given("the following POS exist")
+    public void theFollowingPosExist(List<PosDto> posList) {
+        createPos(posList);
+    }
 
     // When -----------------------------------------------------------------------
 
@@ -102,6 +107,27 @@ public class CucumberPosSteps {
     }
 
     // TODO: Add When step for new scenario
+    @When("I update the POS with name {string} to have description {string}")
+    public void updatePosByName(String name, String newDescription) {
+        // 1. POS direkt anhand des Namens abrufen
+        PosDto pos = retrievePosByName(name);
+
+        // 2. Neues PosDto mit geänderter Beschreibung erstellen
+        PosDto updated = PosDto.builder()
+                .id(pos.id())
+                .name(pos.name())
+                .description(newDescription)
+                .type(pos.type())
+                .campus(pos.campus())
+                .street(pos.street())
+                .houseNumber(pos.houseNumber())
+                .postalCode(pos.postalCode())
+                .city(pos.city())
+                .build();
+
+        // 3. Update nur für dieses POS durchführen. Muss in eine einelemntige List eingefügt werden, da updatePos so funktioniert
+        updatePos(List.of(updated));
+    }
 
     // Then -----------------------------------------------------------------------
 
@@ -114,4 +140,12 @@ public class CucumberPosSteps {
     }
 
     // TODO: Add Then step for new scenario
+    @Then("the POS with name {string} should have description {string}")
+    public void thePosWithNameShouldHaveDescription(String name, String expectedDescription) {
+        // 1. POS vom Server abrufen
+        PosDto pos = retrievePosByName(name);
+
+        // 2. Beschreibung prüfen
+        assertThat(pos.description()).isEqualTo(expectedDescription);
+    }
 }
